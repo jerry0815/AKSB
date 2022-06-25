@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+{% block title %} 
+線上教室預約系統 - 借用登記
+{% endblock %}
+{% block content %}
+	<div>
+		<div class="d-flex justify-content-center align-items-start h-100 ">
+			<div class="text-dark">
+				<h1 class="text-center mt-3 mb-2">借用登記</h1>
+
+				<h5 class="text-center">Borrowing</h5>		
+				
+			</div>
+		</div>
+
+		<div class="d-flex justify-content-center align-items-center mt-4">
+			<div style="width:75%;border-color:black;border-style:solid;border-width:1px;padding:30px;">
+				<form method="POST" action={{url_for('borrow_page')}} id="borrow_form" onsubmit="borrow()">
+					<input hidden name="borrow_type" id="borrow_type" value="borrow">
+					<div class="form-group">
+					  <label for="titleInput">會議名稱(Meeting Title)</label>
+					  <input class="form-control" id="titleInput" aria-describedby="titleHelp" placeholder="輸入名稱" maxlength="10" name="title">
+					  <small id="titleHelp" class="form-text text-muted">會議名稱最多10字</small>
+					</div>
+					<div class="form-group">
+						<label for="startDate">開始</label>
+						  <div>
+							  <input style="display: inline ;width: 30%;left:5%" class="form-control" type="date" id="startDate" name="startDate">
+								  <span>
+										  ,&nbsp;&nbsp;
+										  第 
+										  <select class="custom-select border border-secondary w-auto h-auto" 
+										  id="startSection" name="startSection" >
+											  {%for i in range(1, 15)%}
+												  <option value={{i}}> {{i}} </option>
+											  {%endfor%} 
+										  </select>
+									  節
+								  </span>
+						  </div>
+					  </div>
+  
+					  <div class="form-group">
+						  <label for="startDate">結束</label>
+							<div>
+								<input style="display: inline ;width: 30%;left:5%" class="form-control" type="date" id="endDate" name="endDate">
+									<span>
+											,&nbsp;&nbsp;
+											第 
+											<select class="custom-select border border-secondary w-auto h-auto" 
+											id="endSection" name="endSection" >
+												{%for i in range(1, 15)%}
+													<option value={{i}}> {{i}} </option>
+												{%endfor%} 
+											</select>
+										節
+									</span>
+							</div>
+						</div>
+
+					<div class="form-group">
+						<label for="building">大樓(building)</label>
+						<select class="custom-select mr-sm-2 border border-secondary mt-2 mb-3" 
+							id="building" name="building" >
+								<option selected>請選擇大樓...</option>
+								{%for b in buildings%}
+									<option value={{b}}> {{b}} </option>
+								{%endfor%} 
+							</select>
+					</div>
+					<div class="form-group">
+						<label for="capacity">可容納人數(capacity)</label>
+						<input class="form-control" onkeyup="value=value.replace(/[^\d]/g,'') " 　　
+									onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\d]/g,''))"
+									　　 id="capacity" name="capacity" placeholder="如:10, 25(人)" > 
+
+					</div>
+					<div class="form-group">
+						<div>
+							<label for="room_id_input">教室編號(Room Id)</label>
+							<button class="btn btn-secondary ml-3 text-center mb-1" style="width: 60px;" type="button" id="search">搜尋</button>
+						</div>
+						<input class="form-control" id="room_id_input" aria-describedby="roomNameHelp" 
+						 	placeholder="輸入教室編號" name="roomName">
+						<small id="roomNameHelp" class="form-text text-muted">如:EA101</small>
+					  </div>
+					
+					<div class="form-group">
+						<div class="d-flex justify-content-start align-items-center">
+							<label for="room_id_input">參與人(Participants)</label>
+							<select class="custom-select border border-secondary w-auto ml-4" 
+							id="userSelect">
+								<option selected>請選擇用戶...</option>
+								{%for b in allUserNames%}
+									<option value={{b}}>{{b}}</option>
+								{%endfor%} 
+							</select>
+							<button class="btn btn-success ml-3 text-center mb-1" style="width: 60px;"id="addrow" type="button">新增</button>
+						</div>
+						<div class="text-center" style="overflow-y:auto;white-space: nowrap;height: 200px; width: 320px;">
+					<table id="myTable" class="table order-list">
+						<input hidden name ="counter" id="counter" value=0>
+						<tbody>
+							<tr>
+							</tr>
+						</tbody>
+					</table>
+					</div>
+
+					</div>
+					
+					<button style="width: 200px;" class="btn btn-primary btn-lg mt-3" type="button" onclick="borrow()">
+						借用
+						<br>
+						Borrow
+					</button>
+
+				</form>
+			</div>
+		</div>
+	</div>
+{% endblock %}
+
+{% block head_script %}
+<script type="text/javascript">
+	function error_message() {
+		if("{{message}}" == "borrow_fail")
+			alert('借用失敗!');
+		else if("{{message}}" == "borrow_success")
+			alert('借用成功!');
+		else if("{{message}}" == "ban_success")
+			alert('禁用成功!');
+		else if("{{message}}" == "ban_fail")
+			alert('禁用失敗!');
+	}
+    window.onload = error_message();
+</script>
+{% endblock %}
+
+{% block script %}
+<script>
+
+	function compareDate(startDate, endDate, startSection, endSection)
+	{
+		const startYear = parseInt(startDate.split('-')[0]);
+		const startMonth = parseInt(startDate.split('-')[1]);
+		const startDay = parseInt(startDate.split('-')[2]);
+
+		const endYear = parseInt(endDate.split('-')[0]);
+		const endMonth = parseInt(endDate.split('-')[1]);
+		const endDay = parseInt(endDate.split('-')[2]);
+
+		
+		if(startYear > endYear) 
+		{
+			return true;
+		}
+		else if (startYear == endYear)
+		{
+			if(startMonth > endMonth)
+			{
+				return true;
+			}
+			else if(startMonth == endMonth)
+			{
+				if((startDay > endDay) || (startDay == endDay && startSection > endSection)) return true;
+			}
+		}
+		return false;
+	}
+	function borrow()
+	{
+		const startDate = document.getElementById("startDate").value;
+		const endDate = document.getElementById("endDate").value;
+		const startSection = document.getElementById("startSection").value;
+		const endSection = document.getElementById("endSection").value;
+		const building = document.getElementById("building").value;
+		const capacity = document.getElementById("capacity").value;
+
+
+		if(document.getElementById('titleInput').value == '' || startDate == ''
+		|| endDate == '' || startSection == '' || endSection == '' || building == '請選擇大樓...' 
+		|| capacity == '' || document.getElementById('room_id_input').value == '')
+		{
+			alert('不可有欄位為空');
+			return false;
+		}
+		else if(compareDate(startDate, endDate, startSection, endSection))
+		{
+			alert("結束時間不可早於開始時間!");
+			return false;
+		}
+		else
+		{
+			document.getElementById('borrow_form').submit();
+			return true;
+		}
+
+	}
+
+
+	function ban()
+	{
+		var borrow_type = document.getElementById('borrow_type');
+		borrow_type.value = "ban";
+		if(!borrow())
+		{
+			borrow_type.value = "borrow";
+		}
+	}
+
+	$(document).ready(function () {
+	var id = document.getElementById("counter");
+	var userSelecter = document.getElementById("userSelect");
+	
+
+
+    $("#addrow").on("click", function () {
+
+		if  ($("#userSelect option:selected").text() != "請選擇用戶...")
+		{
+			var newRow = $("<tr>");
+			var cols = "";
+			
+			cols += '<td><input type="text" class="form-control" name="participant' + id.value + '" value="' +  $("#userSelect option:selected").text() + '"readonly /></td>';
+			cols += '<td><input type="button" class="ibtnDel btn btn-md btn-danger" value="Delete"></td>';
+			newRow.append(cols);
+			$("table.order-list").append(newRow);
+			id.value++;
+
+			userSelecter.options.remove(userSelecter.selectedIndex);
+		}
+		else
+		{
+			alert('請先選擇用戶再按新增!');
+		}
+    });
+
+
+    $("table.order-list").on("click", ".ibtnDel", function (event) {
+		
+		var delete_val = $(this).parent().siblings().children().attr('value');
+
+		userSelecter.options.add(new Option(delete_val, delete_val));
+
+		$(this).closest("tr").remove();
+	});
+	
+	function addItem(form, name, value)
+	{
+		const hiddenField = document.createElement("input");
+
+		hiddenField.type = 'hidden';
+		hiddenField.name =  name;
+		hiddenField.value = value;
+		form.appendChild(hiddenField);
+	}
+	
+	$("#search").on("click", function () { 
+		var form = document.createElement("form");
+		form.setAttribute("action", '{{url_for('borrow_search_page')}}');
+		form.setAttribute("target","_blank");
+		form.setAttribute("method", "post");
+	
+	
+		const startDate = document.getElementById("startDate").value;
+		const endDate = document.getElementById("endDate").value;
+		const startSection = document.getElementById("startSection").value;
+		const endSection = document.getElementById("endSection").value;
+		const building = document.getElementById("building").value;
+		const capacity = document.getElementById("capacity").value;
+
+		if(startDate == '' || endDate == '' || startSection == '' || endSection == '' || building == '請選擇大樓...' || capacity == ''){
+			alert('開始日期,開始節數,結束日期,結束節數,大樓,可容納人數缺一不可');
+			return;
+		}
+			
+		addItem(form, 'startDate', startDate);
+		addItem(form, 'endDate', endDate);
+		addItem(form, 'startSection', startSection);
+		addItem(form, 'endSection', endSection);
+		addItem(form, 'building', building);
+		addItem(form, 'capacity', capacity);
+
+		document.body.appendChild(form);
+		form.submit();
+	}
+	);
+
+});
+</script>
+{% endblock %}

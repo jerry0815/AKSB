@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang = "zh-TW">   
+<head>
+    <meta charset="UTF-8">
+    <title>Test DB</title>    
+</head>
+<body>
+    {%if data%}
+        {%for item in data%}
+            <p>{{item["recordID"]}}</p>
+       		<p>{{item["title"]}}</p>
+            <p>{{item["startDate"]}}</p>
+            <p>{{item["participant"]}}</p>   
+       	{%endfor%}
+    {%else%}
+    	<p>No Data</p>
+    {%endif%}
+</body>

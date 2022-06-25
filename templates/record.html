@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %} 
+線上教室預約系統 - 預約紀錄查詢
+{% endblock %}
+{% block content %}
+<div>
+<div class="d-flex justify-content-center align-items-start h-100 ">
+    <div class="text-dark">
+        <h1 class="text-center mt-3 mb-2">預約紀錄</h1>
+
+        <h5 class="text-center mb">Borrowing Record</h5>		
+       
+    </div>
+</div>
+    <br>
+
+    <div class="text-center ml-4 mr-4 p-3" style="overflow-x:auto;white-space: nowrap;">
+        <table class="table table-bordered ">
+            <thead class="table-primary">
+                <tr>
+                    <th scope="col">會議名稱(Meeting Title)</th>
+                    {%if admin == "admin"%} <th scope="col">種類</th> {%endif%}
+                    <th scope="col">借用期間</th>
+                    <th scope="col">地點</th>
+                    <th scope="col">參與人(Participants)</th>
+                    <th scope="col">更動</th>
+                </tr>
+            </thead>
+            <tbody>
+                {%if records|length != 0 %}
+                {%for r in records%}
+                    <tr>
+                    <th class="text-center align-middle">
+                        {{r['title']}}
+                    </th>
+                    {%if admin == "admin"%}
+                        {%if r['type'] == 1 %}
+                            <td class="text-center align-middle text-danger" style="font-weight: bold;">
+                                禁用
+                            </td> 
+                        {% else %}
+                            <td class="text-center align-middle text-success" style="font-weight: bold;">
+                                借用
+                            </td>
+                        {% endif %}
+                    {%endif%}
+                    <td class="text-center align-middle">
+                        {{r['startDate']}} 第{{r['startSection']}}節
+                        <br>
+                        ~
+                        <br>
+                        {{r['endDate']}} 第{{r['endSection']}}節
+                    </td>
+                   
+                    <td class="text-center align-middle">
+                        {{r['roomName']}}
+                    </td>
+                  
+                    <td class="text-center align-middle">
+                    {%for p in r['participant']%}
+                        {{p}} <br>
+                    {%endfor%}
+                    </td>
+                    <td class="text-center align-middle">
+                        <form class="mb-2" method="POST" action={{ url_for('single_record_page') }}>
+                            <input type="hidden" name="recordID" value={{r['recordID']}}>
+                            <input type="hidden" name="postType" value="get">
+                            <button class="btn btn-primary " type="submit">
+                                修改資訊
+                            </button>
+                        </form>
+                        
+                        <button class="btn btn-danger" onclick="confirm_cancel('{{r['title']}}', '{{r['recordID']}}')">
+                            取消預約
+                        </button>
+                    </td>
+                    </tr>
+                {%endfor%}
+            </tbody>
+        </table>
+        {% else %}
+        </tbody>
+
+        </table>
+        <h1 class="text-center mt-3 mb-2">無資料</h1>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    function confirm_cancel(title,recordID) {
+        if (confirm("確定刪除預約" + title + "?")) {
+            var form = document.createElement("form");
+            form.setAttribute("method", "post");
+            form.setAttribute("action", '{{url_for('single_record_page')}}');
+
+            const hiddenField = document.createElement('input');
+            hiddenField.type = 'hidden';
+            hiddenField.name = "recordID";
+            hiddenField.value = recordID;
+            form.appendChild(hiddenField);
+
+            const hiddenField2 = document.createElement('input');
+            hiddenField2.type = 'hidden';
+            hiddenField2.name = "postType";
+            hiddenField2.value = "delete";
+            
+            form.appendChild(hiddenField2);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+</script>
+{% endblock %}
