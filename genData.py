@@ -43,11 +43,15 @@ for room in tqdm(range(1,261)):
                 participant.remove(str(booker))
                 if len(participant) == 0:
                     participant = ","
+                else:
+                    participant = ",".join(participant)
             else:
                 participant = ",".join(participant)
-        records.append([title, room, cur_date, start_section, cur_date, end_section, participant,booker, 1])
+        cur = date.isoformat(cur_date)
+        records.append([title, room, cur, start_section, cur, end_section, participant,booker, 1])
 
         #tmp = pd.Series(record, index= data.columns)
         #data = data.append(tmp, ignore_index=True)
+print(records[0][2])
 data = pd.DataFrame(records,columns = ['title', 'CR_ID', 'startDate', 'startSection', 'endDate', 'endSection', 'participant', 'B_ID', 'type'])
 data.to_csv('random_record.csv',index=False, encoding='utf-8-sig')
