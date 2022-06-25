@@ -5,8 +5,8 @@ import time
 df = pd.read_csv("random_record.csv")
 vals = df.values
 records = vals.tolist()
-sql = "INSERT INTO `record` (`title`, `CR_ID`,`startDate` , `startSection` , `endDate` , `endSection` , `participant` ,  `B_ID` , `type`) \
-VALUES (?,?,?,?,?,?,?,?,?)"
+sql = "INSERT INTO record (title, CR_ID,startDate , startSection , endDate, endSection , participant ,  B_ID , type) \
+VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
 cursor = connection.cursor()
 start = time.time()
 cursor.executemany(sql,records)

@@ -3,17 +3,17 @@ name_list = ['Wade', 'Dave', 'Seth', 'Ivan', 'Riley', 'Gilbert', 'Jorge', 'Dan',
 cursor = connection.cursor()
 cursor.execute(
 '''CREATE TABLE users
-(userID INTEGER  PRIMARY KEY AUTOINCREMENT,
-userName TEXT NOT NULL,
-password TEXT NOT NULL,
-email TEXT NOT NULL,
+(userID SERIAL  PRIMARY KEY,
+userName VARCHAR NOT NULL,
+password VARCHAR NOT NULL,
+email VARCHAR NOT NULL,
 identity INT NOT NULL);''')
 
 cursor.execute(
 '''CREATE TABLE record
-(recordID INTEGER  PRIMARY KEY AUTOINCREMENT,
-title TEXT NOT NULL,
-participant LONGTEXT,
+(recordID SERIAL  PRIMARY KEY,
+title VARCHAR NOT NULL,
+participant VARCHAR,
 startDate DATE NOT NULL,
 startSection INT NOT NULL,
 endDate DATE NOT NULL,
@@ -24,11 +24,11 @@ type INT);''')
 
 cursor.execute(
 '''CREATE TABLE classroom
-(CR_ID INTEGER  PRIMARY KEY AUTOINCREMENT,
-building TEXT NOT NULL,
-roomname TEXT NOT NULL,
+(CR_ID SERIAL  PRIMARY KEY,
+building VARCHAR NOT NULL,
+roomname VARCHAR NOT NULL,
 capacity INT NOT NULL);''')
-sql = "INSERT INTO 'users' ('userName', 'password' , 'email' , 'identity' ) VALUES (?,?,?,?)"
+sql = "INSERT INTO users (userName, password , email , identity ) VALUES (%s,%s,%s,%s)"
 
 users = [["Jerry" ,  "123456789" , "jerrylulala@gmail.com", 0 ],
         ['Alex',"123456789" , "Alex@gmail.com", 0 ],
@@ -39,7 +39,7 @@ for i in range(15):
     users.append([name_list[i],"123456789", name_list[i]+'@gmail.com',0])
 cursor.executemany(sql,users)
 
-sql = "INSERT INTO `classroom` (`building`, `roomname` , `capacity`) VALUES (?, ? , ?)"
+sql = "INSERT INTO classroom (building, roomname , capacity) VALUES (%s, %s , %s)"
 record = []
 build = ["EA" , "EB" , "EC" , "ED" , "EE", "SA", "SB", "SC", "AC", "A", "AB", "HA", "EO"]
 for b in build:

@@ -19,14 +19,14 @@ def insertRecord(title = "testing record", roomname  = "EA120", startDate = "202
     endDate = "2020-12-30", endSection  = "8", participant = ['jerry','alien','wacky'], bookName = "jerry",type = "0"):
 
     #get booker userid
-    sql = "SELECT  `userID` FROM `users` WHERE `userName`= ?"
+    sql = "SELECT  userID FROM users WHERE userName= %s"
     cursor = connection.cursor()
     cursor.execute(sql,(bookName,))
     connection.commit()
     B_ID = cursor.fetchone()["userID"]
 
     #get classroom CR_ID
-    sql = "SELECT  `CR_ID` FROM `classroom` WHERE `roomname`= ?"
+    sql = "SELECT  CR_ID FROM classroom WHERE roomname= %s"
     cursor = connection.cursor()
     cursor.execute(sql,(roomname,))
     connection.commit()
@@ -34,7 +34,7 @@ def insertRecord(title = "testing record", roomname  = "EA120", startDate = "202
     print("CR_ID = "  + str(CR_ID))
     #process participant
     p_id = []
-    sql = "SELECT  `userID` FROM `users` WHERE `userName`= ?"
+    sql = "SELECT  userID FROM users WHERE userName= %s"
     for ppl in participant:
         cursor = connection.cursor()
         cursor.execute(sql,(ppl,))
@@ -45,8 +45,8 @@ def insertRecord(title = "testing record", roomname  = "EA120", startDate = "202
     p_id_str = listIdToStr(p_id)
     print("p_id_str = " + str(p_id_str))
     #insert record into database
-    sql = "INSERT INTO `record` (`title`, `CR_ID`,`startDate` , `startSection` , `endDate` , `endSection` , `participant` ,  `B_ID` , `type`) \
-    VALUES (?,?,?,?,?,?,?,?,?)"
+    sql = "INSERT INTO record (title, CR_ID,startDate , startSection , endDate , endSection , participant ,  B_ID , type) \
+    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
     cursor = connection.cursor()
     cursor.execute(sql,(title,CR_ID,startDate , startSection , endDate, endSection , p_id_str , B_ID,type))
     connection.commit()
@@ -62,7 +62,7 @@ def processRecord(record,date):
     recordDict = {}
     for i in range(record["startSection"] , endSection + 1):
         #type , title , bookerName
-        sql = "SELECT  `userName` FROM `users` WHERE `userID`= ?"
+        sql = "SELECT  userName FROM users WHERE userID= %s"
         cursor = connection.cursor()
         cursor.execute(sql,(record["B_ID"],))
         connection.commit()
@@ -78,21 +78,21 @@ def searchClassroom(building, capacity = -1 , roomname = "" , date = "2020-01-01
             if roomname[0:2] != building:
                 return None
         if  capacity != None and capacity != "" and int(capacity) > 0:
-            sql = "SELECT * FROM classroom WHERE `roomname` = ? AND `capacity` >= ?"
+            sql = "SELECT * FROM classroom WHERE roomname = %s AND capacity >= %s"
             condition = (roomname,capacity)
         else:
-            sql = "SELECT * FROM classroom WHERE `roomname` = ?"
+            sql = "SELECT * FROM classroom WHERE roomname = %s"
             condition = (roomname,)
     else:
         if capacity != None and capacity != "" and int(capacity) > 0:
             if building != "":
-                sql = "SELECT * FROM classroom WHERE `building` = ? AND `capacity` >= ?"
+                sql = "SELECT * FROM classroom WHERE building = %s AND capacity >= %s"
                 condition = (building,capacity)
             else:
-                sql = "SELECT * FROM classroom WHERE `capacity` >= ?"
+                sql = "SELECT * FROM classroom WHERE capacity >= %s"
                 condition = (capacity,)
         elif building != "":
-            sql = "SELECT * FROM classroom WHERE `building` = ?"
+            sql = "SELECT * FROM classroom WHERE building = %s"
             condition = (building,)
         else:
             print("no condition")
@@ -102,7 +102,7 @@ def searchClassroom(building, capacity = -1 , roomname = "" , date = "2020-01-01
     connection.commit()
     result = cursor.fetchall()
     output = []
-    sql = "SELECT * FROM record WHERE `CR_ID` = ? AND `startDate` = ?"
+    sql = "SELECT * FROM record WHERE CR_ID = %s AND startDate = %s"
     print(result)
     for i in result:
         cursor = connection.cursor()
@@ -124,7 +124,7 @@ def searchClassroom(building, capacity = -1 , roomname = "" , date = "2020-01-01
 # return format:  dict{ 'CR_ID' : CR_ID ,'building' : building , 'capacity' : capacity , 'roomName' : roomname , 'status' : dict{id : tuple()}(7days) }
 #parameter (classroom name , date of the week)
 def searchOneClassroom(CR_ID = "" , date = "2020-12-29") :
-    sql = "SELECT * FROM classroom WHERE `CR_ID` = ?"
+    sql = "SELECT * FROM classroom WHERE CR_ID = %s"
     with connection.cursor() as cursor:
         cursor.execute(sql,CR_ID)
         connection.commit()
@@ -139,7 +139,7 @@ def searchOneClassroom(CR_ID = "" , date = "2020-12-29") :
     delta = timedelta(days = 6 - n)
     endDay = str((today + delta).date())
     print(startDay + " ~ " + endDay)
-    sql = "SELECT * FROM record WHERE `CR_ID` = ? AND `startDate` >= ? AND `endDate` <= ?"
+    sql = "SELECT * FROM record WHERE CR_ID = %s AND startDate >= %s AND endDate <= %s"
     output = []
     with connection.cursor() as cursor:
         cursor.execute(sql,(CR_ID,startDay,endDay))
@@ -162,19 +162,19 @@ def searchOneClassroom(CR_ID = "" , date = "2020-12-29") :
 
 #search the records the user book
 def getRecordByBooker(userName):
-    sql = "SELECT  `userID` FROM `users` WHERE `userName`= ?"
+    sql = "SELECT  userID FROM users WHERE userName= %s"
     cursor = connection.cursor()
     cursor.execute(sql,(userName,))
     connection.commit()
     B_ID = cursor.fetchone()["userID"]
 
-    sql = "SELECT  * FROM `record` WHERE `B_ID`= ?"
+    sql = "SELECT  * FROM record WHERE B_ID= %s"
     cursor = connection.cursor()
     cursor.execute(sql,(B_ID,))
     connection.commit()
     results = cursor.fetchall()
-    #sql1 = "SELECT `userName`  FROM `users` WHERE `userID`= ?"
-    sql2 = "SELECT `roomname`  FROM `classroom` WHERE `CR_ID`= ?"
+    #sql1 = "SELECT userName  FROM users WHERE userID= %s"
+    sql2 = "SELECT roomname  FROM classroom WHERE CR_ID= %s"
     for result in results:
         cursor = connection.cursor()
         cursor.execute(sql2,(result['CR_ID'],))
@@ -186,7 +186,7 @@ def getRecordByBooker(userName):
         participants = participants.split(',')
         if len(participants) == 0:
             continue
-        sql1 = "SELECT `userName` FROM `users` WHERE `userID` IN ({seq})".format(seq=','.join(['?']*len(participants)))
+        sql1 = "SELECT userName FROM users WHERE userID IN ({seq})".format(seq=','.join(['%s']*len(participants)))
         cursor = connection.cursor()
         cursor.execute(sql1,participants)
         connection.commit()
@@ -199,19 +199,19 @@ def getRecordByBooker(userName):
 
 #search the records the user's email book
 def getRecordByBookerEmail(email):
-    sql = "SELECT  `userID` FROM `users` WHERE `email`= ?"
+    sql = "SELECT  userID FROM users WHERE email= %s"
     cursor = connection.cursor()
     cursor.execute(sql,(email,))
     connection.commit()
     B_ID = cursor.fetchone()["userID"]
 
-    sql = "SELECT  * FROM `record` WHERE `B_ID`= ?"
+    sql = "SELECT  * FROM record WHERE B_ID= %s"
     cursor = connection.cursor()
     cursor.execute(sql,(B_ID,))
     connection.commit()
     results = cursor.fetchall()
-    #sql1 = "SELECT `userName`  FROM `users` WHERE `userID`= ?"
-    sql2 = "SELECT `roomname`  FROM `classroom` WHERE `CR_ID`= ?"
+    #sql1 = "SELECT userName  FROM users WHERE userID= %s"
+    sql2 = "SELECT roomname  FROM classroom WHERE CR_ID= %s"
 
     for result in results:
         cursor = connection.cursor()
@@ -225,7 +225,7 @@ def getRecordByBookerEmail(email):
             continue
         participants = participants.split(',')
         
-        sql1 = "SELECT `userName` FROM `users` WHERE `userID` IN ({seq})".format(seq=','.join(['?']*len(participants)))
+        sql1 = "SELECT userName FROM users WHERE userID IN ({seq})".format(seq=','.join(['%s']*len(participants)))
         cursor = connection.cursor()
         cursor.execute(sql1,participants)
         connection.commit()
@@ -238,7 +238,7 @@ def getRecordByBookerEmail(email):
 
 #get the record by id
 def getRecordById(id):
-    sql = "SELECT * FROM `record` WHERE `recordID` = ?"
+    sql = "SELECT * FROM record WHERE recordID = %s"
     cursor = connection.cursor()
     cursor.execute(sql,(id,))
     connection.commit()
@@ -246,8 +246,8 @@ def getRecordById(id):
     if result == None:
         print("no id of this result")
         return None
-    sql1 = "SELECT `userName`  FROM `users` WHERE `userID`= ?"
-    sql2 = "SELECT `roomname`  FROM `classroom` WHERE `CR_ID`= ?"
+    sql1 = "SELECT userName  FROM users WHERE userID= %s"
+    sql2 = "SELECT roomname  FROM classroom WHERE CR_ID= %s"
     cursor = connection.cursor()
     cursor.execute(sql2,(result['CR_ID'],))
     connection.commit()
@@ -271,13 +271,13 @@ def getRecordById(id):
 #update record by record id
 def updateRecord(recordID , title ,participants):
     if title != None and title != "":
-        sql = "UPDATE `record` SET `title` = ? WHERE `recordID` = ?"
+        sql = "UPDATE record SET title = %s WHERE recordID = %s"
         cursor = connection.cursor()
         cursor.execute(sql,(title,recordID))
         connection.commit()
     if participants != None and len(participants) != 0:
         p_id = []
-        sql = "SELECT `userID` FROM `users` WHERE `userName` IN ({seq})".format(seq=','.join(['?']*len(participants)))
+        sql = "SELECT userID FROM users WHERE userName IN ({seq})".format(seq=','.join(['%s']*len(participants)))
         cursor = connection.cursor()
         cursor.execute(sql,(participants,))
         connection.commit()
@@ -286,14 +286,14 @@ def updateRecord(recordID , title ,participants):
             if i != None:
                 p_id.append(i["userID"])
         p_id_str = listIdToStr(p_id)
-        sql = "UPDATE `record` SET `participant` = ? WHERE `recordID` = ?"
+        sql = "UPDATE record SET participant = %s WHERE recordID = %s"
         cursor = connection.cursor()
         cursor.execute(sql,(p_id_str,recordID))
         connection.commit()
     return True
 
 def deleteRecord(recordID):
-    sql = "DELETE FROM `record` WHERE `recordID` = ?"
+    sql = "DELETE FROM record WHERE recordID = %s"
     cursor = connection.cursor()
     cursor.execute(sql,(recordID,))
     connection.commit()
@@ -330,13 +330,13 @@ def borrow(data, borrow_type , booker):
         borrow_type = 0
     else:
         borrow_type = 1
-    sql = "SELECT `CR_ID` FROM `classroom` WHERE `roomname` = ?"
+    sql = "SELECT CR_ID FROM classroom WHERE roomname = %s"
     cursor = connection.cursor()
     cursor.execute(sql,(data['roomName'],))
     connection.commit()
     CR_ID = cursor.fetchone()['CR_ID']
         
-    sql = "SELECT * FROM `record` WHERE `CR_ID` = ?"
+    sql = "SELECT * FROM record WHERE CR_ID = %s"
     cursor = connection.cursor()
     cursor.execute(sql,(CR_ID,))
     connection.commit()

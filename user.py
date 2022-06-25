@@ -12,7 +12,7 @@ def insertUser(userName = "jerry", password = "123456798", email = "jerry@gmail.
 
     """
 
-    sql = "INSERT INTO `users` (`userName`, `password` , `email` , `identity` ) VALUES (?,?,?,?)"
+    sql = "INSERT INTO users (userName, password , email , identity ) VALUES (%s,%s,%s,%s)"
     cursor = connection.cursor()
     cursor.execute(sql,(userName , password , email,identity))
     connection.commit()
@@ -31,7 +31,7 @@ def register(data):
     email = data['email'] + "@gmail.com"
     if not isValidMail(email):
         return False
-    sql = "select * from  `users` where `userName`=?"
+    sql = "select * from  users where userName=%s"
     cursor = connection.cursor()
     cursor.execute(sql,(data['userName'],))
     connection.commit()
@@ -47,7 +47,7 @@ def register(data):
 def validateLogin(email , password):
     if email == "" or email == None:
         return (1 , None)
-    sql = "SELECT `userName` , `password` FROM `users` WHERE `email` = ?"
+    sql = "SELECT userName , password FROM users WHERE email = %s"
     cursor = connection.cursor()
     cursor.execute(sql,(email,))
     connection.commit()
@@ -67,7 +67,7 @@ def validateLogin(email , password):
 def loginCheck(email : str ,password : str):
     if email == "" or email == None:
         return (False,None)
-    sql = "SELECT `password` , `identity` FROM `users` WHERE `email` = ?"
+    sql = "SELECT password , identity FROM users WHERE email = %s"
     cursor = connection.cursor()
     cursor.execute(sql,(email,))
     connection.commit()
@@ -90,7 +90,7 @@ def deleteAccount(userID):
     """
     remove an account by userID
     """
-    sql = "DELETE FROM `users` WHERE `userID` = ?"
+    sql = "DELETE FROM users WHERE userID = %s"
     cursor = connection.cursor()
     cursor.execute(sql,(userID,))
     connection.commit()
@@ -101,7 +101,7 @@ def getAllUserName():
     """
     get all users' name
     """
-    sql = "SELECT `userName` FROM `users`"
+    sql = "SELECT userName FROM users"
     cursor = connection.cursor()
     cursor.execute(sql)
     connection.commit()
@@ -123,7 +123,7 @@ def showUsers():
 
 # return all information about users ["userID","userName", "password" , "email" , "identity" ]
 def getUser(userName):
-    sql = "SELECT * FROM `users` WHERE `userName`=?"
+    sql = "SELECT * FROM users WHERE userName=%s"
     cursor = connection.cursor()
     cursor.execute(sql,(userName,))
     connection.commit()
@@ -139,7 +139,7 @@ def getUserMail(userName):
     """
     if userName == None or len(userName) == 0:
         return []
-    sql = "SELECT `email` FROM `users` WHERE `userName` IN ({seq})".format(seq=','.join(['?']*len(userName)))
+    sql = "SELECT email FROM users WHERE userName IN ({seq})".format(seq=','.join(['%s']*len(userName)))
     print(sql)
     print(userName)
     cursor = connection.cursor()
